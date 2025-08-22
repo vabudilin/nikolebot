@@ -6,7 +6,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 # Получаем токен из переменной окружения
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-async def thing(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def boobs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик команды /thing@BotName"""
     user = update.effective_user
     random_length = random.randint(80, 150)  # Случайное число от 1 до 100
@@ -18,7 +18,7 @@ def main() -> None:
     application = Application.builder().token(TOKEN).build()
 
     # Регистрируем обработчик команды
-    application.add_handler(CommandHandler("thing", thing))
+    application.add_handler(CommandHandler("thing", boobs))
 
     # Запускаем бота в режиме webhook
     application.run_webhook(
