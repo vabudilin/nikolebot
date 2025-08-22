@@ -1,40 +1,57 @@
 import os
 import random
+import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-   # Получаем токен из переменной окружения
+# Получаем токен из переменной окружения
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-async def thing(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-   """Обработчик команды /thing@BotName"""
-   user = update.effective_user
-   if not user.username:
-       response = f"{user.first_name}, ваша грудь {random.randint(75, 150)} сантиметров в обхвате"
-   else:
-       response = f"@{user.username}, ваша грудь {random.randint(75, 150)} сантиметров в обхвате"
-   await update.message.reply_text(response)
+
+async def boobs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Обработчик команды /thing@BotName"""
+    user = update.effective_user
+    if not user.username:
+        response = f"{user.first_name}, ваша грудь {random.randint(75, 150)} сантиметров в обхвате"
+    else:
+        response = f"@{user.username}, ваша грудь {random.randint(75, 150)} сантиметров в обхвате"
+    await update.message.reply_text(response)
+
 
 async def main() -> None:
     """Запуск бота"""
     if not TOKEN:
-       raise ValueError("TELEGRAM_BOT_TOKEN не установлен в переменных окружения")
+        raise ValueError("TELEGRAM_BOT_TOKEN не установлен в переменных окружения")
 
+    # Создаем приложение
     application = Application.builder().token(TOKEN).build()
 
     # Регистрируем обработчик команды
-    application.add_handler(CommandHandler("thing", thing))
+    application.add_handler(CommandHandler("thing", boobs))
 
-    # Запускаем бота в режиме webhook
+    # Настраиваем webhook
     port = int(os.getenv("PORT", 8443))
     webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
+
+    # Устанавливаем webhook
     await application.bot.set_webhook(webhook_url)
-    await application.run_webhook(
-       listen="0.0.0.0",
-       port=port,
-       url_path=TOKEN
+
+    # Запускаем приложение в режиме webhook
+    await application.start()
+    await application.updater.run_webhook(
+        listen="0.0.0.0",
+        port=port,
+        url_path=TOKEN,
+        webhook_url=webhook_url
     )
 
+
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    # Используем существующий event loop вместо создания нового
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        # Если loop уже работает, создаем задачу
+        asyncio.ensure_future(main())
+    else:
+        # Если loop не работает, запускаем его
+        loop.run_until_complete(main())
